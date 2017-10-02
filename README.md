@@ -37,5 +37,9 @@ The library is written in C so it should run faster than python implementation w
 
 The function C_DHT.readSensor(pinNumber) returns (temperature, humidity, 0 or 1) triplet as result.
 If the last value is 0 the communication failed so try again in 2 seconds. If 1 simply read the temperature and humidity.
+
+
 The code sets the communication w/ the sensor on its own thread so it minimizes the chances of interrupt.
 Don't expect to get a reading every time you try to call the function. Give it a few times.
+
+You can also modify it to read from DHT11 or DHT21 as well

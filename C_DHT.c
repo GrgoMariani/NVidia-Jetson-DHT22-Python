@@ -36,7 +36,7 @@ float getTemp(five_bytes *f)	{
 	if( ( ((int)f->byte2)>>6)&0x01 ){
 		int temperature = ( ( ( (int)f->byte2)<<8 ) | (int)f->byte3 );
 		for(int i=0; i<sizeof(temperature)-2; i++)
-			temperature |= ((0xff)<<16+8*i);
+			temperature |= ((0xff)<<(16+8*i));
 		return (double)temperature/10.;
 	}
 	else return  (double)( ( ( (int)f->byte2)<<8 ) | (int)f->byte3 )/10.;

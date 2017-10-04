@@ -23,16 +23,35 @@
 #include <Python.h>
 
 #define PIN0 gpio388                                  //Define which pin on your Jetson is connected to DHT22 as PIN0 when you use C_DHT.readSensor(0)
-#define PIN1 gpio398								  //Define which pin on your Jetson is connected to DHT22 as PIN1 when you use C_DHT.readSensor(1),    Check jetsonGPIO.h for more
+#define PIN1 gpio298								  //Define which pin on your Jetson is connected to DHT22 as PIN1 when you use C_DHT.readSensor(1),    Check jetsonGPIO.h for more
 
 typedef struct	{
 	int *byte0;	int *byte1;	int *byte2;	int *byte3;	int *byteCheckSum;
 }	five_bytes;
 
-int isCheckSumOK(five_bytes *f)	{	return ( ((int)f->byte0 + (int)f->byte1 + (int)f->byte2 + (int)f->byte3)%256 == (int)f->byteCheckSum );	}
+int isCheckSumOK(five_bytes *f)	{	return ( ( ((int)f->byte0 + (int)f->byte1 + (int)f->byte2 + (int)f->byte3) & 0xff )  == (int)f->byteCheckSum );	}
 //! MODIFY THESE TWO FUNCTIONS IF YOU WANT TO USE DHT11 SENSOR
-float getHumid(five_bytes *f)	{	return  (double)( ( ( (int)f->byte0)<<8 ) | (int)f->byte1 )/10.;										}
-float getTemp(five_bytes *f)	{	return  (double)( ( ( (int)f->byte2)<<8 ) | (int)f->byte3 )/10.;										}
+float getHumid(five_bytes *f)	{	return  (double)( ( ( (int)f->byte0)<<8 ) | (int)f->byte1 )/10.;												}
+float getTemp(five_bytes *f)	{
+	if( ( ((int)f->byte2)>>6)&0x01 ){
+		int temperature = ( ( ( (int)f->byte2)<<8 ) | (int)f->byte3 );
+		for(int i=0; i<sizeof(temperature)-2; i++)
+			temperature |= ((0xff)<<16+8*i);
+		return (double)temperature/10.;
+	}
+	else return  (double)( ( ( (int)f->byte2)<<8 ) | (int)f->byte3 )/10.;
+}
+
+void doublecheck(int ivar[] ){
+	ivar[0] &= 0x03;
+	int count1s=0;
+	int temporary=ivar[2] & 0xfc;
+	for(int i=2; i<8; i++)
+		if( (temporary>>i)&0x01 )
+			count1s++;
+	if(count1s>=3) 	ivar[2] |= 0xfc;
+	else 			ivar[2] &= 0x03;
+}
 
 five_bytes *getbytes(int size, clock_t times[]){
 	five_bytes *result=malloc(sizeof(*result));
@@ -40,8 +59,9 @@ five_bytes *getbytes(int size, clock_t times[]){
 	int ivar[5]={0};
 	if(size<80) {result->byteCheckSum=1; return result;}
 	for(int i=size-80; i<size; i=i+2)
-		if((double)times[i]/CLOCKS_PER_SEC >= 0.000055)
+		if((double)times[i]/CLOCKS_PER_SEC >= 0.000053)
 			ivar[(int)((i-size+80)/2)/8] |= (0x01<<(  7-((i-size+80)/2)%8  ));
+	doublecheck(ivar);
 	result->byte0=(int)ivar[0],	result->byte1=(int)ivar[1],	result->byte2=(int)ivar[2],	result->byte3=(int)ivar[3],	result->byteCheckSum=(int)ivar[4];
 	return result;
 }
@@ -94,7 +114,6 @@ static PyObject * readSensor(PyObject *self, PyObject *args){
 	pthread_join(thread,&result);
 	PyObject * ret;
 	five_bytes *bytes=result;
-	//tu
 	float temperature=-39909, humidity=-39909;
 	int valid_message=0;
 	if(isCheckSumOK(bytes)){
@@ -119,3 +138,4 @@ PyMODINIT_FUNC
 initC_DHT(void){
 	(void)Py_InitModule("C_DHT", C_DHT22Methods);
 };
+//Dodati za minus temperature

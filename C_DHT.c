@@ -120,7 +120,7 @@ static PyObject * readSensor(PyObject *self, PyObject *args){
 		valid_message=1;
 		temperature=getTemp(bytes);
 		humidity=getHumid(bytes);
-		if(temperature>100 || temperature<-30 || humidity>100 || humidity<0) temperature=-39909, humidity=-39909, valid_message=0;        //WHEN CHECKSUM FAILS
+		if(temperature>80 || temperature<-40 || humidity>100 || humidity<0) temperature=-39909, humidity=-39909, valid_message=0;        //WHEN CHECKSUM FAILS, Read Documentation
 	}
 	free(bytes);
 	ret=Py_BuildValue("ffi",temperature,humidity,valid_message);
@@ -138,4 +138,3 @@ PyMODINIT_FUNC
 initC_DHT(void){
 	(void)Py_InitModule("C_DHT", C_DHT22Methods);
 };
-//Dodati za minus temperature

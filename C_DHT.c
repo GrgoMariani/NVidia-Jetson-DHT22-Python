@@ -15,15 +15,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "jetsonGPIO.h"
+#include "jetsonGPIO/jetsonGPIO.h"
 #include <time.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include <math.h>
 #include <Python.h>
 
-#define PIN0 gpio388                                  //Define which pin on your Jetson is connected to DHT22 as PIN0 when you use C_DHT.readSensor(0)
-#define PIN1 gpio298								  //Define which pin on your Jetson is connected to DHT22 as PIN1 when you use C_DHT.readSensor(1),    Check jetsonGPIO.h for more
+
+// This is currently set to work with Jetson Xavier
+#define PIN0 gpio249                                  //Define which pin on your Jetson is connected to DHT22 as PIN0 when you use C_DHT.readSensor(0)
+#define PIN1 gpio251								  //Define which pin on your Jetson is connected to DHT22 as PIN1 when you use C_DHT.readSensor(1),    Check jetsonGPIO.h for more
 
 typedef struct	{
 	int *byte0;	int *byte1;	int *byte2;	int *byte3;	int *byteCheckSum;
@@ -41,6 +43,9 @@ float getTemp(five_bytes *f)	{
 	}
 	else return  (double)( ( ( (int)f->byte2)<<8 ) | (int)f->byte3 )/10.;
 }
+
+float getHumidDHT11(five_bytes *f)	{	return  (double)( (int)f->byte0 ); }
+float getTempDHT11(five_bytes *f)	{	return  (double)( (int)f->byte2 ); }
 
 void doublecheck(int ivar[] ){
 	ivar[0] &= 0x03;
@@ -61,7 +66,7 @@ five_bytes *getbytes(int size, clock_t times[]){
 	for(int i=size-80; i<size; i=i+2)
 		if((double)times[i]/CLOCKS_PER_SEC >= 0.000053)
 			ivar[(int)((i-size+80)/2)/8] |= (0x01<<(  7-((i-size+80)/2)%8  ));
-	doublecheck(ivar);
+	//doublecheck(ivar);
 	result->byte0=(int)ivar[0],	result->byte1=(int)ivar[1],	result->byte2=(int)ivar[2],	result->byte3=(int)ivar[3],	result->byteCheckSum=(int)ivar[4];
 	return result;
 }
@@ -128,8 +133,35 @@ static PyObject * readSensor(PyObject *self, PyObject *args){
 }
 
 
+static PyObject * readSensorDHT11(PyObject *self, PyObject *args){
+	int sensor;
+	if(!PyArg_ParseTuple(args, "i", &sensor))
+		return NULL;
+	sensor = (sensor==0 ? PIN0 : PIN1);
+	void *result;
+	pthread_t thread=(pthread_t)malloc( sizeof(pthread_t) );
+	pthread_create(&thread, NULL, communicate, &sensor);
+	pthread_join(thread,&result);
+	PyObject * ret;
+	five_bytes *bytes=result;
+	float temperature=-39909, humidity=-39909;
+	int valid_message=0;
+	if(isCheckSumOK(bytes)){
+		valid_message=1;
+		temperature=getTempDHT11(bytes);
+		humidity=getHumidDHT11(bytes);
+		if(temperature>80 || temperature<-40 || humidity>100 || humidity<0) temperature=-39909, humidity=-39909, valid_message=0;        //WHEN CHECKSUM FAILS, Read Documentation
+	}
+	free(bytes);
+	ret=Py_BuildValue("ffi",temperature,humidity,valid_message);
+	return ret;
+}
+
+
+
 static PyMethodDef C_DHT22Methods[] = {
-	{"readSensor", readSensor, METH_VARARGS, "Read all sensor values and return (float)temperature, (float)humidity and (0 or 1)message validity. If checksum not OK return -39909 (ERROR) as Humid and Temperature"},
+	{"readSensor", 		readSensor, 		METH_VARARGS, "Read all sensor values and return (float)temperature, (float)humidity and (0 or 1)message validity. If checksum not OK return -39909 (ERROR) as Humid and Temperature"},
+	{"readSensorDHT11", readSensorDHT11, 	METH_VARARGS, "Read all sensor values and return (float)temperature, (float)humidity and (0 or 1)message validity. If checksum not OK return -39909 (ERROR) as Humid and Temperature. (Only for DHT11)"},
 	{NULL, NULL, 0, NULL}
 };
 

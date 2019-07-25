@@ -1,9 +1,6 @@
 ## DHT22 NVidia Jetson Python
 A python library to read temperature from your DHT22 sensor connected on GPIO pins of your Jetson Development Kit
-
-Based on https://github.com/jetsonhacks/jetsonTX1GPIO
- * Copyright (c) 2015 JetsonHacks
- * All rights reserved.
+Also added a DHT11 sensor read.
 
 ### Prerequisites
 Install python-dev
@@ -11,14 +8,19 @@ Install python-dev
  sudo apt-get install python-dev
 ```
 
+This repository relies on a fork I made. To clone the repository use:
+```
+ git clone --recurse-submodules -j8 https://github.com/GrgoMariani/jetsonTX1GPIO
+```
+
 ### Setup
 Edit C_DHT.c to edit the pin number you wish to use to communicate with your DHT22.
 Default set to:
  ```
- #define PIN0 gpio 388  //2-pin from bottom left
- #define PIN1 gpio 398  //6-th pin from bottom left
+ #define PIN0 gpio249  //2-pin from bottom left
+ #define PIN1 gpio251  //6-th pin from bottom left
  ```
-If you don't know the pin numbers google "Jetson gpio pinout tk1/tx1/tx2"
+If you don't know the pin numbers google __Jetson gpio pinout tk1/tx1/tx2/xavier__
 
 ### Install
 Download project and install the python library:
@@ -35,8 +37,12 @@ To read sensor enter python as superuser
 
  ```
  sudo python
+ ```
+ Once in python
+ ```python
  import C_DHT
  C_DHT.readSensor(0)
+ C_DHT.readSensorDHT11(0) # if used with DHT11 sensors
  ```
 
 

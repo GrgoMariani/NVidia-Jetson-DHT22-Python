@@ -1,0 +1,3 @@
+[submodule "jetsonGPIO"]
+	path = jetsonGPIO
+	url = https://github.com/GrgoMariani/jetsonTX1GPIO

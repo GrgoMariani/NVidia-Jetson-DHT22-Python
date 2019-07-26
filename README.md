@@ -10,7 +10,7 @@ Install python-dev
 
 This repository relies on a fork I made. To clone the repository use:
 ```
- git clone --recurse-submodules -j8 https://github.com/GrgoMariani/jetsonTX1GPIO
+ git clone --recurse-submodules -j8 https://github.com/GrgoMariani/NVidia-Jetson-DHT22-Python
 ```
 
 ### Setup
@@ -42,7 +42,9 @@ To read sensor enter python as superuser
  ```python
  import C_DHT
  C_DHT.readSensor(0)
+ C_DHT.readSensor(1)
  C_DHT.readSensorDHT11(0) # if used with DHT11 sensors
+ C_DHT.readSensorDHT11(1) # if used with DHT11 sensors
  ```
 
 

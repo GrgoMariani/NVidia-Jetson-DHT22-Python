@@ -1,6 +1,14 @@
 ## DHT22 NVidia Jetson Python
-A python library to read temperature from your DHT22 sensor connected on GPIO pins of your Jetson Development Kit
-Also added a DHT11 sensor read.
+A python library to read temperature from your DHT22 sensor connected on GPIO pins of your Jetson Development Kit.
+
+## DHT11 support
+Also added a DHT11 sensor read - However this should be tested by someone.
+
+## List of supported Jetson boards
+* TX1
+* TX2
+* Xavier
+* Nano
 
 ### Prerequisites
 Install python-dev
@@ -41,10 +49,10 @@ To read sensor enter python as superuser
  Once in python
  ```python
  import C_DHT
- C_DHT.readSensor(0)
- C_DHT.readSensor(1)
- C_DHT.readSensorDHT11(0) # if used with DHT11 sensors
- C_DHT.readSensorDHT11(1) # if used with DHT11 sensors
+ C_DHT.readSensor(0)        # if used with DHT22, read first sensor
+ C_DHT.readSensor(1)        # if used with DHT22, read second sensor
+ C_DHT.readSensorDHT11(0)   # if used with DHT11 sensors
+ C_DHT.readSensorDHT11(1)   # if used with DHT11 sensors
  ```
 
 
@@ -58,6 +66,6 @@ If the last value is 0 the communication failed so try again in 2 seconds. If 1 
 The code sets the communication w/ the sensor on its own thread so it minimizes the chances of interrupt.
 Don't expect to get a reading every time you try to call the function. Give it a few times.
 
-You can also modify it to read from DHT11 or DHT21 as well
+~~You can also modify it to read from DHT11 or DHT21 as well.~~ (Done recently)
 
 Datasheet on: https://cdn-shop.adafruit.com/datasheets/Digital+humidity+and+temperature+sensor+AM2302.pdf

@@ -10,6 +10,8 @@ Also added a DHT11 sensor read - However this should be tested by someone.
 * Xavier
 * Nano
 
+Check the `jetsonGPIO/jetsonGPIO.h`  for defines. It should be obvious which is which.
+
 ### Prerequisites
 Install python-dev
 ```
@@ -25,8 +27,8 @@ This repository relies on a fork I made. To clone the repository use:
 Edit C_DHT.c to edit the pin number you wish to use to communicate with your DHT22.
 Default set to:
  ```
- #define PIN0 gpio249  //2-pin from bottom left
- #define PIN1 gpio251  //6-th pin from bottom left
+ #define PIN0 jetsontx2_pin37  //2-pin from bottom left
+ #define PIN1 jetsontx2_pin29  //6-th pin from bottom left
  ```
 If you don't know the pin numbers google __Jetson gpio pinout tk1/tx1/tx2/xavier__
 
